@@ -17,7 +17,7 @@
         }"
       >
         <div v-bind="rootProps">
-          <div class="input-group">
+          <div class="input-group bg-white">
             <span class="input-group-prepend icon">
               <img
                 src="@/assets/icons/location-pin.svg"
@@ -32,6 +32,7 @@
                 'form-control',
                 { 'autocomplete-input-no-results': noResults },
               ]"
+              v-model="searchText"
               @focus="handleFocus"
               @blur="handleBlur"
             />
@@ -70,12 +71,19 @@ import '@trevoreyre/autocomplete-vue/dist/style.css';
 
 export default {
   name: 'Search',
+  props: {
+    data: Object,
+  },
+  watch: {
+    data(d) {
+      if (d) this.inputProps.search = d.name;
+    },
+  },
   data() {
     return {
       noResults: false,
-      inputProps: {
-        search: '',
-      },
+      inputProps: {},
+      searchText: '',
       results: [],
     };
   },
@@ -83,9 +91,21 @@ export default {
     Autocomplete,
   },
   methods: {
-    search() {},
+    search(input) {
+      if (input.length < 1) {
+        return [];
+      }
+      return this.results.filter((city) => {
+        return city.toLowerCase().startsWith(input.toLowerCase());
+      });
+    },
     handleFocus() {},
     handleBlur() {},
+  },
+  mounted() {
+    console.log(this.data);
+    if (this.data?.name)
+      this.searchText = this.data.name + ', ' + this.data.sys.country;
   },
 };
 </script>

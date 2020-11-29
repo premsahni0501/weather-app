@@ -1,27 +1,48 @@
 <template>
   <div class="day-body" :class="{ active: data === 1 }">
-    <h6>Fri</h6>
+    <h6>{{ getDay(data.dt) }}</h6>
     <h6 class="m-0">
       <span>
-        <strong>28<sup>°</sup></strong>
+        <strong>{{ Math.ceil(data.temp.max) }}<sup>°</sup></strong>
       </span>
-      <span>19<sup>°</sup></span>
+      <span>{{ Math.ceil(data.temp.min) }}<sup>°</sup></span>
     </h6>
     <div class="icon">
-      <img src="@/assets/icons/sun.svg" alt="sun" />
+      <img
+        :src="
+          require(`@/assets/icons/${
+            data.weather[0].id === 800
+              ? 'sun'
+              : data.weather[0].id === 800
+              ? 'rain'
+              : 'cloudy'
+          }.svg`)
+        "
+        alt="sun"
+      />
     </div>
-    <p class="m-0"><small>Sunny</small></p>
+    <p class="m-0">
+      <small>{{
+        data.weather && data.weather.length && data.weather[0].main
+      }}</small>
+    </p>
   </div>
 </template>
 <script>
+import { format } from 'date-fns';
 export default {
   name: 'Day',
   props: {
     data: Object,
   },
+  methods: {
+    getDay(unixTime) {
+      return format(new Date(unixTime * 1000), 'eee dd');
+    },
+  },
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 .day-body {
   display: inline-flex;
   flex-direction: column;

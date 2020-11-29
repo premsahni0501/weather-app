@@ -1,13 +1,12 @@
 import Vue from "vue";
 import App from "./App.vue";
 import "./registerServiceWorker";
-import router from "./router";
 import store from "./store";
+import './services/axios'
 
 Vue.config.productionTip = false;
 
-new Vue({
-  router,
+export const vm = new Vue({
   store,
   render: h => h(App)
 }).$mount("#app");
