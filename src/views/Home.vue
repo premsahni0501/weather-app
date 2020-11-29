@@ -1,8 +1,8 @@
 <template>
   <div class="container px-0">
-    <search :data="weatherData" />
-    <days-list :data="weatherData" />
-    <current-day :data="weatherData" />
+    <search />
+    <days-list />
+    <current-day />
   </div>
 </template>
 
@@ -10,27 +10,26 @@
 import DaysList from '@/components/days-list';
 import Search from '@/components/search';
 import CurrentDay from '@/components/current-day';
-import { getLocation, getWeatherData } from '@/services';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: 'Home',
-  data() {
-    return {
-      weatherData: null,
-    };
+  computed: {
+    ...mapGetters(['getLocation', 'getWeatherData']),
   },
   components: {
     DaysList,
     Search,
     CurrentDay,
   },
+  methods: {
+    ...mapActions(['fetchLocation', 'fetchWeatherData']),
+  },
   async mounted() {
     try {
-      const res = await getLocation();
-      const { lat, lon } = res.data;
-      const wres = await getWeatherData({ lat, lon });
-      this.weatherData = wres.data;
-      console.log(lat, lon, JSON.stringify(this.weatherData));
+      await this.fetchLocation();
+      const { lat, lon } = this.getLocation;
+      await this.fetchWeatherData({ lat, lon });
     } catch (e) {
       console.log(e);
     }

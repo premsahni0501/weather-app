@@ -1,6 +1,13 @@
 <template>
-  <div class="days-wrapper mb-2" v-if="forecast && forecast && forecast.length">
-    <day v-for="d in forecast" :key="'day_' + d.dt" :data="d" />
+  <div
+    class="days-wrapper mb-2"
+    v-if="getForecast && getForecast.daily && getForecast.daily.length"
+  >
+    <day
+      v-for="(forecast, ind) in getForecast.daily"
+      :key="'day_' + ind"
+      :data="forecast"
+    />
   </div>
   <div class="days-wrapper mb-2" v-else>
     <div class="day-body" v-for="d in 5" :key="'skel' + d">
@@ -13,7 +20,7 @@
 </template>
 <script>
 import Day from './day';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 export default {
   name: 'DaysList',
   components: {
@@ -24,21 +31,31 @@ export default {
       forecast: null,
     };
   },
-  props: {
-    data: Object,
+  computed: {
+    ...mapGetters(['getForecast', 'getLocation']),
   },
   watch: {
-    data(d) {
-      if (d?.coord) {
-        this.getForecast(d.coord);
+    getLocation(d) {
+      if (d) {
+        const { lat, lon } = d;
+        this.fetchForecast({
+          lat,
+          lon,
+        });
       }
     },
   },
   methods: {
-    ...mapActions(['getForecast']),
+    ...mapActions(['fetchForecast']),
   },
   mounted() {
-    this.data?.coord && this.getForecast(this.data?.coord);
+    if (this.getLocation) {
+      const { lat, lon } = this.getLocation;
+      this.fetchForecast({
+        lat,
+        lon,
+      });
+    }
   },
 };
 </script>
@@ -52,9 +69,9 @@ export default {
 .days-wrapper {
   .d-box {
     display: block;
-    width: 100px;
-    height: 2rem;
-    background-color: #ddd;
+    width: 90px;
+    height: 1.5rem;
+    background-color: #eee;
     margin-bottom: 0.25rem;
     border-radius: 0.15rem;
   }
@@ -63,7 +80,7 @@ export default {
     margin: 0 auto;
     width: 2rem;
     height: 2rem;
-    background-color: #ddd;
+    background-color: #eee;
     margin-bottom: 0.25rem;
     border-radius: 1rem;
   }

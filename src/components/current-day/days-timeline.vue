@@ -1,39 +1,45 @@
 <template>
-  <div class="container-fluid p-0">
+  <div class="container-fluid p-0" v-if="getCurrentDateHourlyData">
     <div class="chartWrapper">
       <div class="canvasContainer">
         <canvas ref="canvas" width="1200" height="180"></canvas>
       </div>
     </div>
     <div class="row">
-      <div class="col stat">
+      <div
+        class="col stat"
+        v-if="getCurrentDateData && getCurrentDateData.pressure"
+      >
         <div class="data">
           <h6>
             <strong>Pressure</strong>
           </h6>
-          <h6 class="m-0">
-            1013hpa
-          </h6>
+          <h6 class="m-0">{{ getCurrentDateData.pressure }} hpa</h6>
         </div>
       </div>
-      <div class="col stat">
+      <div
+        class="col stat"
+        v-if="getCurrentDateData && getCurrentDateData.humidity"
+      >
         <div class="data">
           <h6>
             <strong>Humidity</strong>
           </h6>
-          <h6 class="m-0">
-            93%
-          </h6>
+          <h6 class="m-0">{{ getCurrentDateData.humidity }}%</h6>
         </div>
       </div>
     </div>
     <sun-set-rise />
   </div>
+  <div v-else class="container-fluid text-center">
+    fetching weather data...
+  </div>
 </template>
 <script>
 import { Chart } from 'chart.js';
-import { addHours, format, startOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import SunSetRise from './sun-set-rise';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: 'DaysTimelineChart',
@@ -56,16 +62,55 @@ export default {
       },
     };
   },
-  methods: {
-    getTimeline() {
-      const data = [];
-      const labels = [];
-      const startTime = startOfDay(new Date());
-      for (let i = 0; i <= 24; i++) {
-        data.push(Math.random() * 50);
-        labels.push(format(addHours(startTime, i), 'hh a'));
+  watch: {
+    getCurrentDateHourlyData(data) {
+      if (data && data.length) {
+        this.data.datasets[0].data = data.map((d) => d.temp);
+        this.data.labels = data.map((d) =>
+          format(new Date(d.dt * 1000), 'hh a')
+        );
+        this.$nextTick(() => {
+          if (this.chart) {
+            this.chart.update();
+          } else {
+            this.initChart();
+          }
+        });
       }
-      return { data, labels };
+    },
+    getLocation() {
+      this.getHourlyData();
+    },
+    getSelectedDate() {
+      this.getHourlyData();
+    },
+  },
+  computed: {
+    ...mapGetters([
+      'getCurrentDateHourlyData',
+      'getLocation',
+      'getSelectedDate',
+      'getCurrentDateData',
+    ]),
+  },
+  methods: {
+    ...mapActions(['fetchHourlyForecast']),
+    async getHourlyData() {
+      if (this.getLocation) {
+        const { lat, lon } = this.getLocation;
+        await this.fetchHourlyForecast({
+          lat,
+          lon,
+          start: this.getSelectedDate,
+        });
+        this.$nextTick(() => {
+          if (this.chart) {
+            this.chart.update();
+          } else {
+            this.initChart();
+          }
+        });
+      }
     },
     initChart() {
       if (this.$refs['canvas']) {
@@ -75,11 +120,8 @@ export default {
         gradient.addColorStop(0, 'rgba(3, 169, 244, 1)');
         gradient.addColorStop(0.25, 'rgba(3, 169, 244, 0)');
 
-        const { data, labels } = this.getTimeline();
-        this.data.labels = labels;
         this.data.datasets.forEach((d) => {
           d.backgroundColor = gradient;
-          d.data = data;
         });
 
         this.chart = new Chart(ctx, {
@@ -87,9 +129,6 @@ export default {
           data: this.data,
           options: {
             events: [],
-            tooltips: {
-              enabled: false,
-            },
             legend: {
               display: false,
             },
@@ -105,9 +144,6 @@ export default {
       }
     },
   },
-  mounted() {
-    this.initChart();
-  },
 };
 </script>
 <style lang="scss" scoped>
@@ -116,7 +152,7 @@ export default {
   overflow-x: auto;
   margin: 2rem -1rem;
   .canvasContainer {
-    width: 1200px;
+    width: 100%;
     display: block;
     padding: 0.25rem;
     position: relative;
@@ -132,6 +168,9 @@ export default {
   }
 }
 @media screen and (max-width: 820px) {
+  .canvasContainer {
+    width: 1200px !important;
+  }
   .stat {
     flex-basis: 0;
     max-width: 100%;

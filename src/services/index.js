@@ -34,5 +34,17 @@ export const getWeatherData = ({ q, lat, lon }) => {
   return Axios.get(`//api.openweathermap.org/data/2.5/weather?${query}`)
 }
 
-export const getForecastService = ({ lat, lon, exclude }) =>
-  Axios.get(`//api.openweathermap.org/data/2.5/onecall?exclude=${exclude}&units=metric&cnt=5&lat=${lat}&lon=${lon}&appid=${OWM_API_KEY}`)
+export const getForecastService = ({ lat, lon, month, day, exclude }) => {
+  let query = lat ? `lat=${lat}&lon=${lon}&` : ''
+  query += `month=${month}&`
+  query += `day=${day}&`
+  query += `exclude=${exclude}&`
+  query += `appid=${OWM_API_KEY}&units=metric`
+
+  return Axios.get(`//api.openweathermap.org/data/2.5/onecall?${query}`)
+}
+
+export const fetchAllCityService = () => Axios.get('/json/current.city.list.json')
+
+export const getHourlyForecastService = ({ lat, lon, type, start, end }) =>
+  Axios.get(`//history.openweathermap.org/data/2.5/history/city?type=${type}&start=${start}&end=${end}&units=metric&lat=${lat}&lon=${lon}&appid=${'dd0252bc2cf01314e33c6ec67ca5d42c'}`)

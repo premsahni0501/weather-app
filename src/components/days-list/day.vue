@@ -1,5 +1,9 @@
 <template>
-  <div class="day-body" :class="{ active: data === 1 }">
+  <div
+    class="day-body"
+    :class="{ active: isCurrentSelect }"
+    @click="onDayClick"
+  >
     <h6>{{ getDay(data.dt) }}</h6>
     <h6 class="m-0">
       <span>
@@ -29,15 +33,26 @@
   </div>
 </template>
 <script>
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
+import { mapGetters, mapMutations } from 'vuex';
 export default {
   name: 'Day',
   props: {
     data: Object,
   },
+  computed: {
+    ...mapGetters(['getSelectedDate']),
+    isCurrentSelect() {
+      return isSameDay(this.getSelectedDate * 1000, this.data.dt * 1000);
+    },
+  },
   methods: {
+    ...mapMutations(['setSelectedDate']),
     getDay(unixTime) {
       return format(new Date(unixTime * 1000), 'eee dd');
+    },
+    onDayClick() {
+      this.setSelectedDate(this.data.dt);
     },
   },
 };
@@ -46,7 +61,7 @@ export default {
 .day-body {
   display: inline-flex;
   flex-direction: column;
-  min-width: min-content;
+  min-width: max-content;
   padding: 0.5rem 1rem;
   text-align: center;
   border: 2px solid transparent;
