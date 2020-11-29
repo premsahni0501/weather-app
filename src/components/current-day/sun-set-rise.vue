@@ -1,12 +1,15 @@
 <template>
   <div class="container-fluid p-0">
-    <div class="d-flex align-items-center justify-content-between p-2">
+    <div
+      class="d-flex align-items-center justify-content-between p-2"
+      v-if="getCurrentDateData"
+    >
       <div>
         <p class="m-0 small">
           <strong>Sunrise</strong>
         </p>
         <p class="m-0 small">
-          7:22am
+          {{ getTime(getCurrentDateData.sunrise) }}
         </p>
       </div>
       <div>
@@ -14,20 +17,21 @@
           <strong>Sunset</strong>
         </p>
         <p class="m-0 small">
-          6:22pm
+          {{ getTime(getCurrentDateData.sunset) }}
         </p>
       </div>
     </div>
     <div class="chartWrapper">
-      <div class="canvasContainer">
-        <canvas ref="sunCanvas" height="150"></canvas>
+      <div class="canvasContainer" style="height: 200px">
+        <canvas ref="sunCanvas" height="150px"></canvas>
       </div>
     </div>
   </div>
 </template>
 <script>
 import { Chart } from 'chart.js';
-import { addHours, addMinutes, format, startOfDay, sub } from 'date-fns';
+import { format, startOfDay, addHours } from 'date-fns';
+import { mapGetters } from 'vuex';
 export default {
   name: 'SunSetRise',
   data() {
@@ -48,33 +52,17 @@ export default {
       },
     };
   },
+  watch: {
+    getCurrentDateData(d) {
+      d && this.initChart();
+    },
+  },
+  computed: {
+    ...mapGetters(['getCurrentDateData']),
+  },
   methods: {
-    getTimeline() {
-      let boundary = '';
-      const sunrise = '7:22';
-      // const sunset = '6:22';
-      // const noon = '12:20';
-      const data = [];
-      const labels = [];
-      const startTime = startOfDay(new Date());
-      const srSplit = sunrise.split(':');
-
-      const hh = srSplit[0];
-      const mm = srSplit[1];
-      const start = addHours(startTime, 5);
-      const middle = addMinutes(
-        addHours(startTime, parseInt(hh)),
-        parseInt(mm)
-      );
-      data.push(startTime.getTime() - start.getTime());
-      data.push(sub(start, middle).getTime());
-      data.push(startTime.getTime() - start.getTime());
-
-      boundary = 'start';
-      labels.push(format(addHours(startTime, 5), 'hh a'));
-      labels.push(format(addHours(startTime, 13), 'hh a'));
-      labels.push(format(addHours(startTime, 20), 'hh a'));
-      return { data, labels, boundary };
+    getTime(time) {
+      return format(time * 1000, 'h:mm a');
     },
     initChart() {
       if (this.$refs['sunCanvas']) {
@@ -82,22 +70,32 @@ export default {
         const gradient = ctx.createLinearGradient(0, 0, 0, 450);
 
         gradient.addColorStop(0, 'rgba(245, 195, 46, 1)');
-        gradient.addColorStop(0.5, 'rgba(245, 195, 46, 0.5)');
-        gradient.addColorStop(0.51, 'rgba(0,0,0, 0.5)');
-        gradient.addColorStop(1, 'rgba(0,0,0, 1)');
+        gradient.addColorStop(1, 'rgba(245, 195, 46, 0)');
 
         this.data.datasets.forEach((d) => {
           d.backgroundColor = gradient;
-          const { data, labels, boundary } = this.getTimeline();
-          this.data.labels = labels;
-          d.fill = boundary;
-          d.data = data;
+          d.fill = 'start';
+          const sunrise = new Date(
+            this.getCurrentDateData.sunrise * 1000
+          ).getTime();
+          const noon = addHours(startOfDay(sunrise), 12);
+          const sunset =
+            noon.getTime() -
+            new Date(this.getCurrentDateData.sunset * 1000).getTime();
+          d.data = [sunrise - noon.getTime(), noon, sunset];
+          console.log(d.data);
+          this.data.labels = [
+            format(sunrise, 'h:mm a'),
+            format(noon, 'h:mm a'),
+            format(new Date(this.getCurrentDateData.sunset * 1000), 'h:mm a'),
+          ];
         });
 
         this.chart = new Chart(ctx, {
           type: 'line',
           data: this.data,
           options: {
+            maintainAspectRatio: false,
             events: [],
             tooltips: {
               enabled: false,
@@ -118,7 +116,9 @@ export default {
     },
   },
   mounted() {
-    this.initChart();
+    if (this.getCurrentDateData) {
+      this.initChart();
+    }
   },
 };
 </script>

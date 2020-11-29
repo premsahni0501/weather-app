@@ -36,7 +36,7 @@ export default {
             return 'mist';
           case 'Clear':
             return 'sun';
-          case 'Cloudy':
+          case 'Clouds':
             return 'cloudy';
           default:
             return 'sun';

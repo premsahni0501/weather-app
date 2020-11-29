@@ -28,8 +28,11 @@ export default {
   async mounted() {
     try {
       await this.fetchLocation();
-      const { lat, lon } = this.getLocation;
-      await this.fetchWeatherData({ lat, lon });
+      this.$nextTick(async () => {
+        const { lat, lon } = this.getLocation;
+        console.log(this.getLocation);
+        await this.fetchWeatherData({ lat, lon });
+      });
     } catch (e) {
       console.log(e);
     }

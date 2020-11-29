@@ -1,6 +1,6 @@
 <template>
   <div class="d-block position-relative">
-    <div class="input-group bg-white">
+    <div class="input-group bg-white" @click.stop>
       <span class="input-group-prepend icon">
         <img
           src="@/assets/icons/location-pin.svg"
@@ -10,80 +10,122 @@
       </span>
       <input
         class="form-control"
+        placeholder="Search by city and country"
         v-model="searchText"
         @focus="handleFocus"
-        @blur="handleBlur"
-        @change="handleChange"
+        autocomplete="off"
+        role="combobox"
       />
       <span class="input-group-append icon">
         <img src="@/assets/icons/search.svg" alt="location" class="img-fluid" />
       </span>
     </div>
     <div class="autocomplete" v-show="focused">
-      <ul
-        v-if="filtered.length === 0"
-        class="autocomplete-result-list"
-        style="position: absolute; z-index: 1; width: 100%; top: 100%"
-      >
-        <li class="autocomplete-result">No results found</li>
-      </ul>
+      <li class="list-group-item" v-if="filtered.length === 0">
+        {{
+          searchText.length > 1
+            ? 'No results found'
+            : 'Start typing city or country name'
+        }}
+      </li>
       <ul class="list-group" v-else>
-        <li
-          v-for="(result, index) in filtered"
+        <result-item
+          :search="searchText"
+          v-for="(result, index) in filteredData"
           :key="'result_' + index"
-          class="list-group-item"
-        >
-          {{ result }}
-        </li>
+          :result="result"
+        />
       </ul>
     </div>
   </div>
 </template>
 <script>
+import ResultItem from './ResultItem';
+import { getWeatherData } from '@/services';
+import { mapActions } from 'vuex';
+
 export default {
   name: 'Autocomplete',
   props: {
     search: String,
     data: Array,
   },
+  components: { ResultItem },
   data() {
     return {
       searchText: '',
       focused: false,
+      filteredData: [],
     };
   },
   watch: {
     search(s) {
-      this.searchText = s;
+      if (s) this.searchText = s;
+    },
+    async filtered(d) {
+      const res = await Promise.all(d);
+      this.filteredData = res;
     },
   },
   computed: {
     filtered() {
-      if (this.searchText.length > 1) {
-        console.log(this.data);
-        return this.data.filter((city) => {
+      if (this.searchText.length > 2) {
+        const filtered = this.data.filter((city) => {
           return (
-            city.name.includes(this.searchText) ||
-            city.country.includes(this.searchText)
+            city.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
+            city.country.toLowerCase().includes(this.searchText.toLowerCase())
           );
+        });
+        // .splice(0, 5);
+        return filtered.map(async (el) => {
+          try {
+            const { coord } = el;
+            const res = await getWeatherData(coord);
+            if (res?.data) {
+              el.weatherData = res.data;
+            }
+            return el;
+          } catch (e) {
+            console.log(e);
+          }
         });
       }
       return [];
     },
   },
   methods: {
-    handleChange() {},
+    ...mapActions(['resetToCurrentLocation']),
     handleFocus() {
-      this.focused = this.searchText.length > 1;
+      this.focused = true;
     },
-    handleBlur() {
-      this.focused = false;
-    },
+  },
+  mounted() {
+    document.documentElement.addEventListener('click', (e) => {
+      if (!this.$el.contains(e.currentTarget)) {
+        this.focused = false;
+        if (this.search.length < 2) {
+          this.resetToCurrentLocation();
+        }
+      }
+    });
   },
 };
 </script>
 
 <style lang="scss" scoped>
+.list-group-item {
+  cursor: pointer;
+}
+.autocomplete {
+  position: absolute;
+  width: 100%;
+  max-height: 300px;
+  z-index: 10;
+  .list-group {
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
 .input-group {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   padding: 0.5rem;
@@ -100,11 +142,6 @@ export default {
     &:focus {
       box-shadow: none;
     }
-  }
-}
-.autocomplete[data-loading='true'] {
-  .input-group-append {
-    display: none;
   }
 }
 </style>

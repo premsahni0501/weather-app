@@ -1,6 +1,6 @@
 import Axios from "axios";
 
-const OWM_API_KEY = '6cf165b7f0475cb33bea17e408bfa193'
+const OWM_API_KEY = 'cfec61aa4d6a9d16646f15db722c1379'
 
 export const ipLookUp = async () => Axios.get('http://ip-api.com/json')
 
@@ -11,8 +11,10 @@ export const getLocation = () => {
         (position) => {
           const { latitude, longitude } = position.coords
           resolve({
-            lat: latitude,
-            lon: longitude
+            data: {
+              lat: latitude,
+              lon: longitude
+            }
           })
         },
         (error_message) => {
@@ -44,7 +46,7 @@ export const getForecastService = ({ lat, lon, month, day, exclude }) => {
   return Axios.get(`//api.openweathermap.org/data/2.5/onecall?${query}`)
 }
 
-export const fetchAllCityService = () => Axios.get('/json/current.city.list.json')
+export const fetchAllCityService = () => Axios.get('/json/city.list.json')
 
 export const getHourlyForecastService = ({ lat, lon, type, start, end }) =>
-  Axios.get(`//history.openweathermap.org/data/2.5/history/city?type=${type}&start=${start}&end=${end}&units=metric&lat=${lat}&lon=${lon}&appid=${'dd0252bc2cf01314e33c6ec67ca5d42c'}`)
+  Axios.get(`//history.openweathermap.org/data/2.5/history/city?type=${type}&start=${start}&end=${end}&units=metric&lat=${lat}&lon=${lon}&appid=${'cfec61aa4d6a9d16646f15db722c1379'}`)

@@ -55,6 +55,7 @@ export default new Vuex.Store({
       state.forecast = data
     },
     setLocation(state, location) {
+      console.log(location)
       state.location = location
     },
     setWeatherData(state, data) {
@@ -110,6 +111,7 @@ export default new Vuex.Store({
       return new Promise(async resolve => {
         try {
           const res = await getLocation()
+          console.log(res)
           if (res.data) {
             commit('setLocation', res.data)
           }
@@ -147,6 +149,12 @@ export default new Vuex.Store({
         }
         resolve(true)
       })
+    },
+    async resetToCurrentLocation({ dispatch, state }) {
+      await dispatch('fetchLocation');
+      const { lat, lon } = state.location;
+      console.log(this.location);
+      await dispatch('fetchWeatherData', { lat, lon });
     }
   }
 });
