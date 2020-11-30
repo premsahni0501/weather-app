@@ -11,19 +11,8 @@
       </span>
       <span>{{ Math.ceil(data.temp.min) }}<sup>°</sup></span>
     </h6>
-    <div class="icon">
-      <img
-        :src="
-          require(`@/assets/icons/${
-            data.weather[0].id === 800
-              ? 'sun'
-              : data.weather[0].id === 800
-              ? 'rain'
-              : 'cloudy'
-          }.svg`)
-        "
-        alt="sun"
-      />
+    <div class="icon" v-if="getIcon">
+      <img :src="require(`@/assets/icons/${getIcon}.svg`)" :alt="getIcon" />
     </div>
     <p class="m-0">
       <small>{{
@@ -45,6 +34,23 @@ export default {
     isCurrentSelect() {
       return isSameDay(this.getSelectedDate * 1000, this.data.dt * 1000);
     },
+    getIcon() {
+      if (this.data?.weather?.length) {
+        const weatherType = this.data.weather[0].main;
+        switch (weatherType) {
+          case 'Mist':
+            return 'mist';
+          case 'Clear':
+            return 'sun';
+          case 'Clouds':
+          case 'Rain':
+            return 'cloudy';
+          default:
+            return 'sun';
+        }
+      }
+      return '';
+    },
   },
   methods: {
     ...mapMutations(['setSelectedDate']),
@@ -52,6 +58,7 @@ export default {
       return format(new Date(unixTime * 1000), 'eee dd');
     },
     onDayClick() {
+      document.querySelector('.chartWrapper')?.scrollTo(0, 0);
       this.setSelectedDate(this.data.dt);
     },
   },

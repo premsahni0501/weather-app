@@ -1,6 +1,6 @@
 import Axios from "axios";
 
-const OWM_API_KEY = 'cfec61aa4d6a9d16646f15db722c1379'
+const OWM_API_KEY = '6cf165b7f0475cb33bea17e408bfa193'//'cfec61aa4d6a9d16646f15db722c1379'
 
 export const ipLookUp = async () => Axios.get('http://ip-api.com/json')
 
@@ -27,6 +27,27 @@ export const getLocation = () => {
       resolve(ipLookUp())
     }
   })
+}
+
+export const throttle = (func, limit) => {
+  let lastFunc
+  let lastRan
+  return function () {
+    const context = this
+    const args = arguments
+    if (!lastRan) {
+      func.apply(context, args)
+      lastRan = Date.now()
+    } else {
+      clearTimeout(lastFunc)
+      lastFunc = setTimeout(function () {
+        if (Date.now() - lastRan >= limit) {
+          func.apply(context, args)
+          lastRan = Date.now()
+        }
+      }, limit - (Date.now() - lastRan))
+    }
+  }
 }
 
 export const getWeatherData = ({ q, lat, lon }) => {

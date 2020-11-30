@@ -6,7 +6,7 @@
           {{ getTemp }}
           <sup>°</sup>
         </strong>
-        <span class="icon">
+        <span class="icon" v-if="getIcon">
           <img :src="require(`@/assets/icons/${getIcon}.svg`)" :alt="getIcon" />
         </span>
       </h1>
@@ -46,12 +46,13 @@ export default {
           case 'Clear':
             return 'sun';
           case 'Clouds':
+          case 'Rain':
             return 'cloudy';
           default:
             return 'sun';
         }
       }
-      return 'sun';
+      return '';
     },
   },
 };

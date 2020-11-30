@@ -1,26 +1,5 @@
 <template>
   <div class="container-fluid p-0">
-    <div
-      class="d-flex align-items-center justify-content-between p-2"
-      v-if="getCurrentDateData"
-    >
-      <div>
-        <p class="m-0 small">
-          <strong>Sunrise</strong>
-        </p>
-        <p class="m-0 small">
-          {{ getTime(getCurrentDateData.sunrise) }}
-        </p>
-      </div>
-      <div>
-        <p class="m-0 small">
-          <strong>Sunset</strong>
-        </p>
-        <p class="m-0 small">
-          {{ getTime(getCurrentDateData.sunset) }}
-        </p>
-      </div>
-    </div>
     <div class="chartWrapper">
       <svg
         width="100%"
@@ -40,7 +19,7 @@
         <path
           id="night"
           d="M123.077,197c-44.072,50.507 -118.077,67 -118.077,67l0,-67l118.077,0ZM674.923,197l118.077,0l0,67c0,0 -73.915,-16.372 -118.077,-67Z"
-          style="fill:#3d3737;"
+          style="fill:#888;"
         />
         <g id="lines">
           <path
@@ -132,6 +111,27 @@
           </linearGradient>
         </defs>
       </svg>
+    </div>
+    <div
+      class="d-flex align-items-center justify-content-between p-2"
+      v-if="getCurrentDateData"
+    >
+      <div>
+        <p class="m-0 small">
+          <strong>Sunrise</strong>
+        </p>
+        <p class="m-0 small">
+          {{ getTime(getCurrentDateData.sunrise) }}
+        </p>
+      </div>
+      <div>
+        <p class="m-0 small">
+          <strong>Sunset</strong>
+        </p>
+        <p class="m-0 small">
+          {{ getTime(getCurrentDateData.sunset) }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

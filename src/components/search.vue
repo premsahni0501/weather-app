@@ -10,7 +10,6 @@
 </template>
 <script>
 import Autocomplete from './Autocomplete';
-import '@trevoreyre/autocomplete-vue/dist/style.css';
 import { mapActions, mapGetters } from 'vuex';
 
 export default {

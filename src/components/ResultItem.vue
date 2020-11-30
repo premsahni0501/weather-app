@@ -1,7 +1,7 @@
 <template>
   <li
     class="list-group-item d-flex align-items-center justify-content-between"
-    @click="setLocationCoords(result.coord)"
+    @click="setLocationCoords(result)"
   >
     <strong>{{ result.name }} </strong>
     <span v-if="result.weatherData" class="d-inline-flex align-items-center">
@@ -21,7 +21,7 @@
         </p>
       </span>
       <span>
-        <span class="icon">
+        <span class="icon" v-if="getIcon">
           <img :src="require(`@/assets/icons/${getIcon}.svg`)" :alt="getIcon" />
         </span>
       </span>
@@ -29,6 +29,7 @@
   </li>
 </template>
 <script>
+import { getUnixTime } from 'date-fns';
 import { mapActions, mapMutations } from 'vuex';
 export default {
   name: 'ResultItem',
@@ -40,27 +41,31 @@ export default {
     getIcon() {
       if (this.result?.weatherData?.weather?.length) {
         const weatherType = this.result.weatherData.weather[0].main;
+
         switch (weatherType) {
           case 'Mist':
             return 'mist';
           case 'Clear':
             return 'sun';
           case 'Clouds':
+          case 'Rain':
             return 'cloudy';
           default:
             return 'sun';
         }
       }
-      return 'sun';
+      return '';
     },
   },
   methods: {
-    ...mapMutations(['setLocation']),
+    ...mapMutations(['setLocation', 'setSelectedDate']),
     ...mapActions(['fetchWeatherData', 'fetchHourlyForecast']),
-    async setLocationCoords(coord) {
-      this.setLocation(coord);
-      await this.fetchWeatherData(coord);
-      await this.fetchHourlyForecast(coord);
+    async setLocationCoords(result) {
+      document.querySelector('.chartWrapper')?.scrollTo(0, 0);
+      this.setSelectedDate(getUnixTime(new Date()));
+      this.setLocation(result.coord);
+      await this.fetchWeatherData(result.coord);
+      await this.fetchHourlyForecast(result.coord);
     },
   },
 };
