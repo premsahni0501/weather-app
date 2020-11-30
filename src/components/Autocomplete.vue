@@ -70,13 +70,14 @@ export default {
   computed: {
     filtered() {
       if (this.searchText.length > 2) {
-        const filtered = this.data.filter((city) => {
-          return (
-            city.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
-            city.country.toLowerCase().includes(this.searchText.toLowerCase())
-          );
-        });
-        // .splice(0, 5);
+        const filtered = this.data
+          .filter((city) => {
+            return (
+              city.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
+              city.country.toLowerCase().includes(this.searchText.toLowerCase())
+            );
+          })
+          .splice(0, 5);
         return filtered.map(async (el) => {
           try {
             const { coord } = el;

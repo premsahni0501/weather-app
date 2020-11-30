@@ -1,8 +1,8 @@
 <template>
-  <div class="container-fluid p-0" v-if="getCurrentDateHourlyData">
+  <div class="container-fluid p-0" v-if="getForecast">
     <div class="chartWrapper">
       <div class="canvasContainer">
-        <canvas ref="canvas" width="1200" height="180"></canvas>
+        <canvas ref="canvas"></canvas>
       </div>
     </div>
     <div class="row">
@@ -37,7 +37,7 @@
 </template>
 <script>
 import { Chart } from 'chart.js';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import SunSetRise from './sun-set-rise';
 import { mapActions, mapGetters } from 'vuex';
 
@@ -63,22 +63,7 @@ export default {
     };
   },
   watch: {
-    getCurrentDateHourlyData(data) {
-      if (data && data.length) {
-        this.data.datasets[0].data = data.map((d) => d.temp);
-        this.data.labels = data.map((d) =>
-          format(new Date(d.dt * 1000), 'hh a')
-        );
-        this.$nextTick(() => {
-          if (this.chart) {
-            this.chart.update();
-          } else {
-            this.initChart();
-          }
-        });
-      }
-    },
-    getLocation() {
+    getForecast() {
       this.getHourlyData();
     },
     getSelectedDate() {
@@ -86,23 +71,22 @@ export default {
     },
   },
   computed: {
-    ...mapGetters([
-      'getCurrentDateHourlyData',
-      'getLocation',
-      'getSelectedDate',
-      'getCurrentDateData',
-    ]),
+    ...mapGetters(['getSelectedDate', 'getForecast', 'getCurrentDateData']),
   },
   methods: {
     ...mapActions(['fetchHourlyForecast']),
     async getHourlyData() {
-      if (this.getLocation) {
-        const { lat, lon } = this.getLocation;
-        await this.fetchHourlyForecast({
-          lat,
-          lon,
-          start: this.getSelectedDate,
+      if (this.getForecast.hourly?.length) {
+        const data = this.getForecast.hourly;
+        const temps = [];
+        data.forEach((d) => {
+          if (isSameDay(d.dt * 1000 - 1, this.getSelectedDate * 1000))
+            temps.push({ temp: d.temp, date: d.dt });
         });
+        this.data.datasets[0].data = temps.map((d) => d.temp);
+        this.data.labels = temps.map((d) =>
+          format(new Date(d.date * 1000), 'hh a')
+        );
         this.$nextTick(() => {
           if (this.chart) {
             this.chart.update();
@@ -128,6 +112,7 @@ export default {
           type: 'line',
           data: this.data,
           options: {
+            maintainAspectRatio: false,
             events: [],
             legend: {
               display: false,

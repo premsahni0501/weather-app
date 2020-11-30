@@ -1,7 +1,7 @@
 <template>
   <div class="card my-3">
     <div class="card-body px-3">
-      <h1 class="temp" v-if="getCurrentDateData && getCurrentDateData.temp">
+      <h1 class="temp" v-if="getCurrentDateData">
         <strong>
           {{ getTemp }}
           <sup>°</sup>
@@ -25,10 +25,19 @@ export default {
   computed: {
     ...mapGetters(['getWeatherData', 'getSelectedDate', 'getCurrentDateData']),
     getTemp() {
-      return this.getCurrentDateData?.temp;
+      console.log(
+        JSON.stringify(this.getCurrentDateData),
+        this.getCurrentDateData?.temp.night
+      );
+      if (
+        this.getCurrentDateData.dt > this.getCurrentDateData.sunrise ||
+        this.getCurrentDateData.dt < this.getCurrentDateData.sunset
+      ) {
+        return this.getCurrentDateData.temp.day;
+      }
+      return this.getCurrentDateData.temp.night;
     },
     getIcon() {
-      console.log(this.getCurrentDateData);
       if (this.getCurrentDateData?.weather?.length) {
         const weatherType = this.getCurrentDateData.weather[0].main;
         switch (weatherType) {

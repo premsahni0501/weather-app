@@ -1,4 +1,4 @@
-import { getUnixTime } from "date-fns";
+import { getUnixTime, isSameDay } from "date-fns";
 import Vue from "vue";
 import Vuex from "vuex";
 import { fetchAllCityService, getForecastService, getLocation, getWeatherData } from '../services/index'
@@ -32,8 +32,8 @@ export default new Vuex.Store({
       return state.selectedDate
     },
     getCurrentDateData(state) {
-      if (state.forecast?.current) {
-        return state.forecast.current
+      if (state.forecast?.daily?.length) {
+        return state.forecast.daily.filter(d => isSameDay(d.dt * 1000, state.selectedDate * 1000))[0]
       }
       return null
     },
@@ -55,7 +55,6 @@ export default new Vuex.Store({
       state.forecast = data
     },
     setLocation(state, location) {
-      console.log(location)
       state.location = location
     },
     setWeatherData(state, data) {
@@ -111,7 +110,6 @@ export default new Vuex.Store({
       return new Promise(async resolve => {
         try {
           const res = await getLocation()
-          console.log(res)
           if (res.data) {
             commit('setLocation', res.data)
           }
@@ -153,7 +151,6 @@ export default new Vuex.Store({
     async resetToCurrentLocation({ dispatch, state }) {
       await dispatch('fetchLocation');
       const { lat, lon } = state.location;
-      console.log(this.location);
       await dispatch('fetchWeatherData', { lat, lon });
     }
   }

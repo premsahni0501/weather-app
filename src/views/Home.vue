@@ -30,7 +30,6 @@ export default {
       await this.fetchLocation();
       this.$nextTick(async () => {
         const { lat, lon } = this.getLocation;
-        console.log(this.getLocation);
         await this.fetchWeatherData({ lat, lon });
       });
     } catch (e) {
