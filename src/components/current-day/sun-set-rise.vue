@@ -137,7 +137,7 @@
 </template>
 <script>
 // import { Chart } from 'chart.js';
-import { endOfDay, format } from 'date-fns';
+import { addHours, format, startOfToday, sub } from 'date-fns';
 import { mapGetters } from 'vuex';
 export default {
   name: 'SunSetRise',
@@ -204,11 +204,15 @@ export default {
     initChart() {
       this.path = document.querySelector('#path');
       this.sun = document.querySelector('#sun');
-      // this.start(5000);
-      this.move(
-        (this.getCurrentDateData.dt * 1000) /
-          endOfDay(this.getCurrentDateData.dt * 1000).getTime()
-      );
+      const sunriseOffset = this.getCurrentDateData.sunrise
+        .toString()
+        .split(':')
+        .pop();
+      const point =
+        sub(addHours(startOfToday(), sunriseOffset)).getTime() -
+        (this.getCurrentDateData.dt + sunriseOffset * 60 * 60) * 1000;
+      console.log(point);
+      this.move((point / 24) * 60 * 60 * 1000);
       this.checkDayNight();
     },
     checkDayNight() {
